@@ -1,10 +1,13 @@
 import streamlit as st
 from textblob import TextBlob
-import googletrans
-from googletrans import Translator
+
+try:
+    from googletrans import Translator
+except Exception:
+    Translator = None
 
 # Initialize the translator
-translator = Translator()
+translator = Translator() if Translator is not None else None
 
 # Function to detect language
 def detect_language(text):
@@ -32,8 +35,11 @@ user_input = st.text_input("You: ")
 
 if user_input:
     # Translate user input to English if not in English
-    if language != "English":
-        user_input_translated = translator.translate(user_input, dest='en').text
+    if language != "English" and translator is not None:
+        try:
+            user_input_translated = translator.translate(user_input, dest='en').text
+        except Exception:
+            user_input_translated = user_input
     else:
         user_input_translated = user_input
 
@@ -44,8 +50,11 @@ if user_input:
     response = f"I understood you said: '{user_input_translated}'. Sentiment: {sentiment}."
 
     # Translate response back to selected language
-    if language != "English":
-        response = translator.translate(response, dest=language.lower()).text
+    if language != "English" and translator is not None:
+        try:
+            response = translator.translate(response, dest=language.lower()).text
+        except Exception:
+            pass
 
     # Display the response
     st.write("Chatbot: ", response)

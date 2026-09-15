@@ -15,17 +15,17 @@ Small Streamlit applications exploring interactive Python UI patterns, including
 
 ## Run Locally
 
-Install Streamlit in a virtual environment, then run the entry point you want to inspect:
+Install the dependencies in a virtual environment, then run the entry point you want to inspect:
 
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate
 # macOS/Linux: source .venv/bin/activate
-pip install streamlit
+pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The repository does not include a dependency manifest, automated tests, persistent storage, or a deployment configuration, so each entry point should be treated as an exploratory example.
+The basic entry points do not require external credentials. The advanced chatbot optionally uses the spaCy `en_core_web_sm` model and online translation; it falls back to token splitting, no entity results, or the original text when those resources are unavailable. The repository does not include automated tests, persistent storage, or a deployment configuration, so each entry point remains an exploratory example.
 
 ## Future Improvements
 

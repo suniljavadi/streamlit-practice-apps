@@ -10,21 +10,27 @@ from sklearn.metrics.pairwise import cosine_similarity
 from textblob import TextBlob
 import random
 import string
-import spacy
-from googletrans import Translator
 import time
 import datetime
 import os
 
-# Load spaCy model for NER
-nlp = spacy.load("en_core_web_sm")
+try:
+    import spacy
+except Exception:
+    spacy = None
+
+try:
+    from googletrans import Translator
+except Exception:
+    Translator = None
+
+try:
+    nlp = spacy.load("en_core_web_sm") if spacy is not None else None
+except Exception:
+    nlp = None
 
 # Initialize the translator
-translator = Translator()
-
-# Download necessary NLTK data
-nltk.download('punkt')
-nltk.download('wordnet')
+translator = Translator() if Translator is not None else None
 
 # Initialize the lemmatizer
 lemmatizer = WordNetLemmatizer()
@@ -67,8 +73,11 @@ goodbyes = ["Goodbye!", "See you later!", "Take care!", "Bye!", "Talk to you soo
 def preprocess_text(text):
     text = text.lower()  # Convert to lowercase
     text = ''.join([char for char in text if char not in string.punctuation])  # Remove punctuation
-    tokens = word_tokenize(text)  # Tokenize
-    tokens = [lemmatizer.lemmatize(word) for word in tokens]  # Lemmatize
+    try:
+        tokens = word_tokenize(text)
+        tokens = [lemmatizer.lemmatize(word) for word in tokens]
+    except LookupError:
+        tokens = text.split()
     return ' '.join(tokens)
 
 # Function to log chat history to a file
@@ -87,6 +96,8 @@ def read_chat_history(filename="chat_log.txt"):
 
 # Named Entity Recognition (NER) Function
 def recognize_entities(user_input):
+    if nlp is None:
+        return []
     doc = nlp(user_input)
     entities = [(ent.text, ent.label_) for ent in doc.ents]
     return entities
@@ -168,8 +179,13 @@ def collect_feedback():
 
 # Function to translate text to a selected language
 def translate_text(user_input, target_language):
-    translation = translator.translate(user_input, dest=target_language)
-    return translation.text
+    if translator is None:
+        return user_input
+    try:
+        translation = translator.translate(user_input, dest=target_language)
+        return translation.text
+    except Exception:
+        return user_input
 
 # Initialize Streamlit app
 def main():
