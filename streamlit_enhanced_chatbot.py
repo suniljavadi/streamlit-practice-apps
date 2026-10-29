@@ -1,5 +1,6 @@
 import streamlit as st
 from textblob import TextBlob
+from practice_utils import decode_text_upload
 
 try:
     from googletrans import Translator
@@ -26,6 +27,7 @@ def analyze_sentiment(text):
 # Set up the Streamlit app
 st.title("Enhanced Chatbot")
 st.write("This is an enhanced chatbot with various features.")
+st.info("Non-English messages may be sent to Google Translate. Avoid entering sensitive information.")
 
 # Language selection
 language = st.selectbox("Select Language", ["English", "Spanish", "French", "German"])
@@ -60,11 +62,16 @@ if user_input:
     st.write("Chatbot: ", response)
 
 # File upload functionality
-uploaded_file = st.file_uploader("Upload a text file", type=["txt"])
+uploaded_file = st.file_uploader(
+    "Upload a text file (max 1 MB)",
+    type=["txt"],
+    max_upload_size=1,
+)
 if uploaded_file is not None:
-    # Read and display the content of the uploaded file
-    content = uploaded_file.read().decode("utf-8")
-    st.write("File content:", content)
-
-    # Respond based on file content (simple echo for demonstration)
-    st.write("Chatbot: I received your file. You can ask me about its content.")
+    try:
+        content = decode_text_upload(uploaded_file.getvalue())
+    except ValueError as error:
+        st.error(str(error))
+    else:
+        st.text_area("File content", content, height=200)
+        st.write("I received the text file. You can ask me about its content.")

@@ -25,11 +25,11 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-The basic entry points do not require external credentials. The advanced chatbot optionally uses the spaCy `en_core_web_sm` model and online translation; it falls back to token splitting, no entity results, or the original text when those resources are unavailable. The repository does not include automated tests, persistent storage, or a deployment configuration, so each entry point remains an exploratory example.
+The basic entry points do not require external credentials. The advanced chatbot optionally uses the spaCy `en_core_web_sm` model and online translation; it falls back to token splitting, no entity results, or the original text when those resources are unavailable. The enhanced chatbot sends non-English text to Google Translate when that integration is available. The chat exercise does not persist conversations or feedback; users can explicitly download a transcript. Text uploads are limited to 1 MB and UTF-8. These controls improve the learning demos but do not add authentication, retention controls, deployment configuration, or operational monitoring; these are not production services.
 
 ## Future Improvements
 
-Add `requirements.txt`, screenshots, clear app-specific instructions, error handling, tests, and a documented deployment target once one application is selected for further development.
+Add screenshots, clear app-specific instructions, tests, and a documented deployment target once one application is selected for further development.
 
 ## Author
 

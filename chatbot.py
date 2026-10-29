@@ -11,8 +11,7 @@ from textblob import TextBlob
 import random
 import string
 import time
-import datetime
-import os
+from practice_utils import MAX_CHAT_MESSAGES, format_chat_export
 
 try:
     import spacy
@@ -79,20 +78,6 @@ def preprocess_text(text):
     except LookupError:
         tokens = text.split()
     return ' '.join(tokens)
-
-# Function to log chat history to a file
-def log_chat_history(messages, filename="chat_log.txt"):
-    with open(filename, "a") as f:
-        for message in messages:
-            f.write(f"{message['role']}: {message['content']}\n")
-        f.write("\n")
-
-# Function to read chat history
-def read_chat_history(filename="chat_log.txt"):
-    if os.path.exists(filename):
-        with open(filename, "r") as f:
-            return f.read()
-    return "No chat history found."
 
 # Named Entity Recognition (NER) Function
 def recognize_entities(user_input):
@@ -171,11 +156,9 @@ def generate_response(user_input, corpus):
 def collect_feedback():
     st.write("Please provide feedback for this conversation:")
     rating = st.slider("Rate your experience (1-5)", 1, 5, 3)
-    feedback = st.text_area("Any additional comments?")
+    st.text_area("Any additional comments? (Not saved)")
     if st.button("Submit Feedback"):
-        with open("feedback_log.txt", "a") as f:
-            f.write(f"Rating: {rating}\nComments: {feedback}\n\n")
-        st.write("Thank you for your feedback!")
+        st.success(f"Thanks for your {rating}/5 feedback. It was not saved.")
 
 # Function to translate text to a selected language
 def translate_text(user_input, target_language):
@@ -216,7 +199,11 @@ def main():
     st.session_state['language'] = st.selectbox("Select language for chatbot responses:", language_options)
     
     # User input
-    user_input = st.text_input(f"{st.session_state['user_name']} (You): ", key="user_input")
+    user_input = st.text_input(
+        f"{st.session_state['user_name']} (You): ",
+        key="user_input",
+        max_chars=2000,
+    )
 
     # Mode selection
     mode = st.selectbox("Choose bot's personality", ["informative", "humorous", "casual"])
@@ -258,21 +245,25 @@ def main():
 
             # Append to previous responses
             st.session_state['previous_responses'].append(user_input.lower())
+            st.session_state['messages'] = st.session_state['messages'][-MAX_CHAT_MESSAGES:]
+            st.session_state['previous_responses'] = st.session_state['previous_responses'][-MAX_CHAT_MESSAGES:]
 
     # Display chat history
     with chat_container:
         for message in st.session_state['messages']:
             st.markdown(f"**{message['avatar']} {message['role']}**: {message['content']}")
 
-    # Log chat history
-    if st.button("End Chat"):
-        log_chat_history(st.session_state['messages'])
-        st.write("Chat history saved!")
-
-    # Display chat history
-    if st.button("View Past Conversations"):
-        chat_log = read_chat_history()
-        st.text_area("Chat History", chat_log, height=300)
+    st.download_button(
+        "Download this chat",
+        data=format_chat_export(st.session_state['messages']),
+        file_name="chat-history.txt",
+        mime="text/plain",
+        disabled=not st.session_state['messages'],
+    )
+    if st.button("Clear chat"):
+        st.session_state['messages'] = []
+        st.session_state['previous_responses'] = []
+        st.rerun()
 
     # Collect feedback
     collect_feedback()
